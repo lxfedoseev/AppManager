@@ -37,6 +37,7 @@ class LoginViewController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    enableLoginButton(false)
   }
   
   override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -47,5 +48,63 @@ class LoginViewController: UIViewController {
     LoginStatus.loggedIn = true
     performSegue(withIdentifier: "LoggedIn", sender: self)
   }
+    
+    // 1
+    private func validate(username: String?, password: String?)
+        -> Bool {
+            guard let username = username,
+                let password = password,
+                username.count >= 5,
+                password.count >= 5 else {
+                    return false
+            }
+            return true
+    }
+    // 2
+    private func enableLoginButton(_ enable: Bool) {
+        loginButton.isEnabled = enable
+        loginButton.alpha = enable ? 1.0 : 0.5
+    }
   
 }
+
+// 1
+extension LoginViewController: UITextFieldDelegate {
+    // 2
+    func textField(_ textField: UITextField,
+                   shouldChangeCharactersIn range: NSRange,
+                   replacementString string: String) -> Bool {
+        var usernameText = username.text
+        var passwordText = password.text
+        if let text = textField.text {
+            // 3
+            let proposed = (text as NSString)
+                .replacingCharacters(in: range, with: string)
+            if textField == username {
+                usernameText = proposed
+            } else {
+                passwordText = proposed
+            }
+        }
+        // 4
+        let isValid = validate(username: usernameText,
+                               password: passwordText)
+        enableLoginButton(isValid)
+        return true
+    }
+    
+    // More to come next
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        if textField == username {
+            password.becomeFirstResponder()
+        } else {
+            password.resignFirstResponder()
+            if validate(username: username.text,
+                        password: password.text) {
+                login(loginButton)
+            }
+        }
+        return false
+    }
+}
+
